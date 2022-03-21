@@ -1,12 +1,23 @@
 import Docker from 'dockerode';
+import { getConfig } from './config';
 
-const createInstance = (container: Docker.Container) => new Promise<void>(async (resolve, reject) => {
-  container.attach({stream: true, stdout: true, stderr: true}, function (err, stream) {
+const createInstance = (
+  container: Docker.Container,
+) => new Promise<void>(async (resolve, reject) => {
+  container.attach({
+    stream: true,
+    stdin: true,
+    stdout: true,
+    stderr: true 
+  }, (err, stream) => {
     if (err) {
       return reject(err);
     }
-    container.modem.demuxStream(stream, process.stdout, process.stderr);
+    stream!.pipe(process.stdout);
+    process.stdin.pipe(stream!);
     stream!.on('end', () => {
+      process.stdout.unpipe(stream!);
+      stream!.unpipe(process.stdout);
       resolve();
     })
   });
@@ -14,17 +25,19 @@ const createInstance = (container: Docker.Container) => new Promise<void>(async 
 });
 
 const runAction = async (command: string, args: string[]) => {
+  const config = await getConfig();
   const docker = new Docker();
   const container = await docker.createContainer({
-    Image: 'node:16',
-    Tty: false,
+    Image: config.image,
+    Tty: true,
     WorkingDir: '/app',
-    Entrypoint: [],
+    OpenStdin: true,
     Cmd: [
       command,
       ...args,
     ],
     HostConfig: {
+      NetworkMode: 'host',
       Binds: [
         `${process.cwd()}:/app`
       ]
@@ -34,6 +47,7 @@ const runAction = async (command: string, args: string[]) => {
     await createInstance(container);
   } finally {
     await container.remove();
+    process.exit(0);
   }
 };
 
