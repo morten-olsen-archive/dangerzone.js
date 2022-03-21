@@ -4,9 +4,7 @@
   "main": "index.js",
   "license": "MIT",
   "bin": {
-    "danger-node": "./bin/node.js",
-    "danger-npm": "./bin/npm.js",
-    "danger-yarn": "./bin/yarn.js"
+    "dangerzone": "./bin/standalone.js"
   },
   "scripts": {
     "bundle": "tsc --build && pkg dist/standalone.js --out-path output"

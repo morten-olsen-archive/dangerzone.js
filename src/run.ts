@@ -21,6 +21,19 @@ const createInstance = (
       resolve();
     })
   });
+
+  async function exitHandler(options: any, exitCode?: number) {
+    await container.stop();
+    if (options.exit) process.exit(exitCode);
+  }
+
+  process.on('exit', exitHandler.bind(null,{cleanup:true}));
+  process.on('SIGINT', exitHandler.bind(null, {exit:true}));
+  process.on('SIGUSR1', exitHandler.bind(null, {exit:true}));
+  process.on('SIGUSR2', exitHandler.bind(null, {exit:true}));
+
+  //catches uncaught exceptions
+  process.on('uncaughtException', exitHandler.bind(null, {exit:true}));
   await container.start();
 });
 
@@ -36,8 +49,11 @@ const runAction = async (command: string, args: string[]) => {
       command,
       ...args,
     ],
+    ExposedPorts: config.exposes,
     HostConfig: {
-      NetworkMode: 'host',
+      AutoRemove: true,
+      //NetworkMode: 'host',
+      PortBindings: config.ports,
       Binds: [
         `${process.cwd()}:/app`
       ]
@@ -46,7 +62,6 @@ const runAction = async (command: string, args: string[]) => {
   try {
     await createInstance(container);
   } finally {
-    await container.remove();
     process.exit(0);
   }
 };
