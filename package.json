@@ -1,0 +1,24 @@
+{
+  "name": "dangerzonejs",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "bin": {
+    "danger-node": "./bin/node.js",
+    "danger-npm": "./bin/npm.js",
+    "danger-yarn": "./bin/yarn.js"
+  },
+  "scripts": {
+    "bundle": "tsc --build && pkg dist/standalone.js --out-path output"
+  },
+  "devDependencies": {
+    "@types/dockerode": "^3.3.5",
+    "@types/node": "^17.0.21",
+    "pkg": "^5.5.2",
+    "typescript": "^4.6.2"
+  },
+  "dependencies": {
+    "commander": "^9.1.0",
+    "dockerode": "^3.3.1"
+  }
+}
